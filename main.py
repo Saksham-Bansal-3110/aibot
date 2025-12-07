@@ -1,5 +1,5 @@
 import os
-import argparse as parser
+import argparse
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -11,8 +11,10 @@ api_key = os.environ.get("GEMINI_API_KEY")
 if api_key is None:
     raise RuntimeError("GEMINI_API_KEY environment varaiable not found in .env file or system environment.")
 
-parser = parser.ArgumentParser(description="Send a prompt to Gemini API")
+parser = argparse.ArgumentParser(description="Send a prompt to Gemini API")
 parser.add_argument("user_prompt",type=str,help="User prompt to sent to the model")
+parser.add_argument("--verbose",action="store_true",help="Enable verbose output")
+
 args = parser.parse_args()
 
 client = genai.Client(api_key=api_key)
@@ -37,9 +39,10 @@ try:
     
     prompt_token = response.usage_metadata.prompt_token_count
     candidate_token = response.usage_metadata.candidates_token_count
-    print(f"User prompt: {messages}")
-    print(f"Prompt tokens: {prompt_token}")
-    print(f"Response tokens: {candidate_token}")
+    if args.verbose:
+        print(f"User prompt: {messages}")
+        print(f"Prompt tokens: {prompt_token}")
+        print(f"Response tokens: {candidate_token}")
     print(f"Response: {response.text}")
 
 except Exception as e:
