@@ -13,14 +13,14 @@ if api_key is None:
 
 parser = argparse.ArgumentParser(description="Send a prompt to Gemini API")
 parser.add_argument("user_prompt",type=str,help="User prompt to sent to the model")
-parser.add_argument("--verbose",action="store_true",help="Enable verbose output")
+#parser.add_argument("--verbose",action="store_true",help="Enable verbose output")
 
 args = parser.parse_args()
 
 client = genai.Client(api_key=api_key)
 
 model_name = "gemini-2.5-flash"
-#prompt = "Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum."
+prompt = "Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum."
 
 messages = [types.Content(role="user",parts=[types.Part(text=args.user_prompt)])]
 
