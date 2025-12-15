@@ -1,5 +1,6 @@
 from functions.get_file_content import get_file_content
 from config import MAX_FILE_CHARS
+from prompts import system_prompt
 
 def run_test():
     result = get_file_content("calculator","lorem.txt")

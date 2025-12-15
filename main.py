@@ -3,7 +3,7 @@ import argparse
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-
+from prompts import system_prompt
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -13,7 +13,7 @@ if api_key is None:
 
 parser = argparse.ArgumentParser(description="Send a prompt to Gemini API")
 parser.add_argument("user_prompt",type=str,help="User prompt to sent to the model")
-#parser.add_argument("--verbose",action="store_true",help="Enable verbose output")
+parser.add_argument("--verbose",action="store_true",help="Enable verbose output")
 
 args = parser.parse_args()
 
@@ -29,6 +29,7 @@ try:
         model=model_name,
         contents=messages,
         config=types.GenerateContentConfig(
+            system_instruction=system_prompt,
             temperature=0,
             top_p=0.95,
             top_k=20,
