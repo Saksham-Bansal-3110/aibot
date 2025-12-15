@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from prompts import system_prompt
+from functions.get_files_info import schema_get_files_info
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -24,12 +25,17 @@ prompt = "Why is Boot.dev such a great place to learn backend development? Use o
 
 messages = [types.Content(role="user",parts=[types.Part(text=args.user_prompt)])]
 
+available_functions = types.Tool(
+    function_declarations=[schema_get_files_info],
+)
+
 try:
     response = client.models.generate_content(
         model=model_name,
         contents=messages,
         config=types.GenerateContentConfig(
             system_instruction=system_prompt,
+            tools=[available_functions],
             temperature=0,
             top_p=0.95,
             top_k=20,
@@ -44,7 +50,26 @@ try:
         print(f"User prompt: {messages}")
         print(f"Prompt tokens: {prompt_token}")
         print(f"Response tokens: {candidate_token}")
-    print(f"Response: {response.text}")
+        
+    #Print normal text response (if any)    
+    if response.text:
+        print(f"Response: {response.text}")
+        
+    #Check for function calls
+    for candidate in response.candidates:
+        content = candidate.content
+        if not content or not content.parts:
+            continue
+        
+        for part in content.parts:
+            function_calls = part.function_calls
+            
+            if function_calls:
+                for function_call_part in function_calls:
+                    print(
+                        f"Calling function: "
+                        f"{function_call_part.name}({function_call_part.args})"
+                    )
 
 except Exception as e:
     print(f"An error occured during content generation: {e}")
