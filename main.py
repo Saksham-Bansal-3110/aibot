@@ -62,14 +62,11 @@ try:
             continue
         
         for part in content.parts:
-            function_calls = part.function_calls
+            if part.text:
+                print(f"Response: {part.text}")
             
-            if function_calls:
-                for function_call_part in function_calls:
-                    print(
-                        f"Calling function: "
-                        f"{function_call_part.name}({function_call_part.args})"
-                    )
+            if part.function_call:
+                print(f"Calling function: {part.function_call.name}({part.function_call.args})")
 
 except Exception as e:
     print(f"An error occured during content generation: {e}")
