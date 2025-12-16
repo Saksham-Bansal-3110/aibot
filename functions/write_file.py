@@ -1,4 +1,6 @@
 import os
+from google import genai
+from google.genai import types
 
 def write_file(working_dir, file_path, content):
     try: 
@@ -26,3 +28,17 @@ def write_file(working_dir, file_path, content):
         
     except Exception as e:
         return f"Error: {e}"
+    
+schema_write_file = types.FunctionDeclaration(
+    name="write_file",
+    description="Overwrites the content on given python files.",
+    parameters=types.Schema(
+        type = types.Type.OBJECT,
+        properties={
+            "directory": types.Schema(
+                type=types.Type.STRING,
+                description="This directories python file gets overwritten.",
+            ),
+        },
+    ),
+) 

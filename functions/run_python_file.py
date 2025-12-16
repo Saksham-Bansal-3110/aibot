@@ -54,15 +54,15 @@ def run_python_file(working_dir,file_path, args=[]):
     except Exception as e:
         return f'Error: executing Python file: {e}'
   
-schema_get_files_content = types.FunctionDeclaration(
-    name="get_files_content",
-    description="Writes the content of the files in a specified directory.",
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Runs the python file specified in the directory.",
     parameters=types.Schema(
         type = types.Type.OBJECT,
         properties={
             "directory": types.Schema(
                 type=types.Type.STRING,
-                description="The directory to get the contents of.",
+                description="This directories python script are run.",
             ),
         },
     ),

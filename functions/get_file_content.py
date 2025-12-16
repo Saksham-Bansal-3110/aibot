@@ -37,7 +37,7 @@ def get_file_content(working_dir, file_path):
         return f"Error: {e}"
 
 schema_get_files_content = types.FunctionDeclaration(
-    name="get_files_content",
+    name="get_file_content",
     description="Writes the content of the files in a specified directory.",
     parameters=types.Schema(
         type = types.Type.OBJECT,
