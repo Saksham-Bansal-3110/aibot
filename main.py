@@ -4,11 +4,56 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from prompts import system_prompt
-from functions.get_files_info import schema_get_files_info
-from functions.get_file_content import schema_get_files_content
-from functions.run_python_file import schema_run_python_file
-from functions.write_file import schema_write_file
+from functions.get_files_info import schema_get_files_info, get_files_info
+from functions.get_file_content import schema_get_files_content, get_file_content
+from functions.run_python_file import schema_run_python_file, run_python_file
+from functions.write_file import schema_write_file, write_file
 
+def call_function(function_call_part, verbose=False):
+    if verbose:
+        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+    else:
+        print(f" - Calling function: {function_call_part.name}")
+        
+    function_map = {
+        "get_files_info": get_files_info,
+        "get_file_content": get_file_content,
+        "run_python_file": run_python_file,
+        "write_file": write_file,
+    }
+    
+    function_name = function_call_part.name
+    
+    if function_name not in function_map:
+        return types.Content(
+            role="tool",
+            parts=[
+                types.Part.from_function_response(
+                    name=function_name,
+                    response={"error":f"Unknown function: {function_name}"},
+                )
+            ],
+        )
+    
+    #Copy args so we don't mutate the original
+    function_args = dict(function_call_part.args or {})
+    
+    #manually inject working directory
+    function_args["working_directory"] = "./calculator"
+    
+    #Call the function and capture the result
+    result = function_map[function_name](**function_args)
+    
+    return types.Content(
+        role="tool",
+        parts=[
+            types.Part.from_function_response(
+                name=function_name,
+                response={"result":result},
+            )
+        ],
+    )
+        
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
 
@@ -59,6 +104,8 @@ try:
         print(f"Response: {response.text}")
         
     #Check for function calls
+    function_call_result = []
+    
     for candidate in response.candidates:
         content = candidate.content
         if not content or not content.parts:
@@ -69,7 +116,31 @@ try:
                 print(f"Response: {part.text}")
             
             if part.function_call:
-                print(f"Calling function: {part.function_call.name}({part.function_call.args})")
+                #call the function via abstraction
+                function_call_result = call_function(
+                    part.function_call,
+                    verbose=args.verbose,
+                )
+                
+                #validate tool response
+                if (
+                    not function_call_result.parts
+                    or not function_call_result.parts[0].function_response
+                    or not function_call_result.parts[0].function_response.response
+                ):
+                    raise RuntimeError(
+                        "Fatal error: function did not return a valid tool response"
+                    )
+                
+                #store the tool response part for later use
+                function_call_result.append(function_call_result.parts[0])
+                
+                #verbose logging
+                if args.verbose:
+                    print(
+                        f"-> {function_call_result.parts[0].function_response.response}"
+                    )
+               
 
 except Exception as e:
     print(f"An error occured during content generation: {e}")
